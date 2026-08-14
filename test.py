@@ -2,13 +2,16 @@ import cv2, torch
 from ultralytics import YOLO
 
 print(torch.cuda.is_available())
-model = YOLO("yolo26n.pt")
+model = YOLO("my_model.pt")
 model.to('cuda')
 
-camera = cv2.VideoCapture(0)
+camera = cv2.VideoCapture(2)
 
 while camera.isOpened():
     ret, frame = camera.read()
+    if not ret:
+        break
+    
     detections = model(frame)[0]
     print(detections)
     
