@@ -11,8 +11,16 @@ env/
 .coverage
 htmlcov/
 
-images/output/*
-!images/output/.gitkeep
+server/runtime/*
+!server/runtime/.gitkeep
 
-# Future ML model artifacts should not be added during this OpenCV-only stage.
+# Xcode and Swift build output
+DerivedData/
+build/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
+# Keep future large model artifacts out of accidental commits.
 *.pt

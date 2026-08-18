@@ -1,3 +1,2 @@
-opencv-python>=4.9,<4.12
-numpy>=1.26,<2.0
-pytest>=8.0
+# The desktop receiver currently uses only the Python standard library.
+# Your friend's recognition code can add its own dependencies here later.

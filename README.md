@@ -1,88 +1,81 @@
-# Robotic Arm Sorter
+# Robotic Arm Sorter Camera Link
 
-This repository is starting with the computer vision foundation for a future robotic arm sorting system. The current stage detects simple red, green, and blue objects in still image files using OpenCV and configurable HSV thresholds.
+This repo now focuses on the connection between an iPhone camera and computer-side software. The iOS app captures camera frames and sends JPEG images over your local Wi-Fi network to a Python receiver running on your computer.
 
-It does not use machine learning, YOLO, robot arm control, or a phone app yet.
+Image recognition, training datasets, YOLO integration, sorting decisions, and robot arm control are intentionally out of scope here.
 
-## Project Structure
+## Architecture
 
 ```text
-src/
-    main.py
-    detector.py
-    camera.py
-    config.py
-tests/
-images/
-    input/
-    output/
-requirements.txt
-README.md
-.gitignore
+iPhone camera app
+    |
+    | HTTP POST /frame with image/jpeg frames
+    v
+Computer receiver
+    |
+    | Future hook for your friend's recognition code
+    v
+Robot sorting system later
 ```
 
-## Install
+## Computer Receiver
 
-From the repository root:
+Run this on the computer that will eventually run image recognition:
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
+python server/receiver.py --host 0.0.0.0 --port 8765
 ```
 
-## Run Detection
+Then open this in a browser on the computer:
 
-Place an image in `images/input/`, then run:
+```text
+http://localhost:8765
+```
+
+The receiver exposes:
+
+- `GET /health` for connection checks
+- `POST /frame` for incoming JPEG frames
+- `GET /latest.jpg` for the newest frame
+- `GET /metadata` for basic frame metadata
+
+To find your computer's local IP address on Windows:
 
 ```powershell
-python -m src.main --image images/input/sample.jpg
+ipconfig
 ```
 
-The command prints structured JSON to the terminal and saves an annotated image to `images/output/sample_annotated.jpg`.
+Look for the IPv4 address on the Wi-Fi adapter, such as `192.168.1.25`.
 
-You can choose explicit output paths:
+## iOS App
 
-```powershell
-python -m src.main --image images/input/sample.jpg --output images/output/annotated.jpg --json-output images/output/detections.json
+Open this project on a Mac with Xcode:
+
+```text
+ios/RobotCameraLink/RobotCameraLink.xcodeproj
 ```
 
-Example output:
+In Xcode:
 
-```json
-{
-  "objects": [
-    {
-      "color": "red",
-      "shape": "rectangle",
-      "center_px": [200, 150],
-      "bounding_box": {
-        "x": 175,
-        "y": 110,
-        "width": 50,
-        "height": 80
-      },
-      "width_px": 50,
-      "height_px": 80,
-      "contour_area_px": 4000.0
-    }
-  ]
-}
+1. Select the `RobotCameraLink` target.
+2. Set your Apple developer team under Signing & Capabilities.
+3. Run the app on a real iPhone.
+4. Make sure the iPhone and computer are on the same Wi-Fi network.
+5. Enter the computer receiver address in the app, for example:
+
+```text
+http://192.168.1.25:8765
 ```
 
-## Run Tests
+Tap `Check`, then `Start`.
 
-```powershell
-python -m pytest
-```
-
-The tests generate synthetic images, so no camera is required.
+If the phone cannot connect, allow Python through Windows Firewall for private networks and confirm both devices are on the same network.
 
 ## Current Limitations
 
-- Detection is based only on hand-tuned HSV color thresholds.
-- Lighting, shadows, camera white balance, and object material can affect results.
-- Only red, green, and blue objects are configured right now.
-- Shape detection is approximate and limited to circle, rectangle, or unknown.
-- Overlapping objects may be detected as one contour.
-- Camera input, sorting decisions, robot arm control, phone integration, and machine learning are intentionally out of scope for this stage.
+- Frames are sent over plain HTTP on the local network.
+- There is no authentication yet.
+- Streaming is foreground-only.
+- The sender uses compressed JPEG frames instead of a low-latency video protocol.
+- The receiver only stores the latest frame and basic metadata.
+- Image recognition is not implemented in this repo yet.
