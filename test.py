@@ -2,7 +2,7 @@ import cv2, torch
 from ultralytics import YOLO
 
 print(torch.cuda.is_available())
-model = YOLO("my_model.pt")
+model = YOLO("trained_26l_v1.pt")
 model.to('cuda')
 
 camera = cv2.VideoCapture(0)
