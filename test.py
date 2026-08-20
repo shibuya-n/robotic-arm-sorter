@@ -5,7 +5,7 @@ print(torch.cuda.is_available())
 model = YOLO("my_model.pt")
 model.to('cuda')
 
-camera = cv2.VideoCapture(2)
+camera = cv2.VideoCapture(0)
 
 while camera.isOpened():
     ret, frame = camera.read()
