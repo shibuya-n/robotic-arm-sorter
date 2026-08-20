@@ -1,0 +1,2 @@
+# The desktop receiver currently uses only the Python standard library.
+# Your friend's recognition code can add its own dependencies here later.

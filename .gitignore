@@ -1,0 +1,26 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+.venv/
+venv/
+env/
+.env
+
+.pytest_cache/
+.coverage
+htmlcov/
+
+server/runtime/*
+!server/runtime/.gitkeep
+
+# Xcode and Swift build output
+DerivedData/
+build/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
+# Keep future large model artifacts out of accidental commits.
+*.pt
