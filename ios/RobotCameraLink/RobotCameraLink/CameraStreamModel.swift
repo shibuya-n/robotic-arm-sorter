@@ -1,6 +1,7 @@
 import AVFoundation
 import CoreImage
 import Foundation
+import ImageIO
 import SwiftUI
 import UIKit
 
@@ -136,8 +137,14 @@ final class CameraStreamModel: NSObject, ObservableObject, AVCaptureVideoDataOut
         session.addOutput(output)
         output.setSampleBufferDelegate(self, queue: videoQueue)
 
-        if let connection = output.connection(with: .video), connection.isVideoOrientationSupported {
-            connection.videoOrientation = .portrait
+        if let connection = output.connection(with: .video) {
+            if #available(iOS 17.0, *) {
+                if connection.isVideoRotationAngleSupported(90) {
+                    connection.videoRotationAngle = 90
+                }
+            } else if connection.isVideoOrientationSupported {
+                connection.videoOrientation = .portrait
+            }
         }
 
         session.commitConfiguration()
@@ -171,11 +178,17 @@ final class CameraStreamModel: NSObject, ObservableObject, AVCaptureVideoDataOut
         return ciContext.jpegRepresentation(
             of: image,
             colorSpace: colorSpace,
-            options: [.lossyCompressionQuality: jpegQuality]
+            options: [
+                CIImageRepresentationOption(rawValue: kCGImageDestinationLossyCompressionQuality as String): jpegQuality
+            ]
         )
     }
 
     private func sendFrame(_ data: Data, width: Int, height: Int, timestamp: TimeInterval, to url: URL) async {
+        let deviceID = await MainActor.run {
+            UIDevice.current.identifierForVendor?.uuidString ?? "ios-device"
+        }
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.timeoutInterval = 2
@@ -183,7 +196,7 @@ final class CameraStreamModel: NSObject, ObservableObject, AVCaptureVideoDataOut
         request.setValue(String(width), forHTTPHeaderField: "X-Frame-Width")
         request.setValue(String(height), forHTTPHeaderField: "X-Frame-Height")
         request.setValue(String(timestamp), forHTTPHeaderField: "X-Frame-Timestamp")
-        request.setValue(UIDevice.current.identifierForVendor?.uuidString ?? "ios-device", forHTTPHeaderField: "X-Device-ID")
+        request.setValue(deviceID, forHTTPHeaderField: "X-Device-ID")
 
         do {
             let (_, response) = try await URLSession.shared.upload(for: request, from: data)
